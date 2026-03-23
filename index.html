@@ -253,6 +253,15 @@ document.getElementById('submit-btn').addEventListener('click', function() {
     return;
   }
   const rect = this.getBoundingClientRect();
+  const email = input.value;
+
+  fetch('https://script.google.com/macros/s/AKfycbx-dph9p75NYuOMQ2rJbebc9ZTtFG0Kj3yR4CkqgKMS5F325ccJdQDvRmkeZ-kDhyhU/exec', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'email=' + encodeURIComponent(email)
+  });
+
   document.querySelector('.footer-row').style.display = 'none';
   document.getElementById('success-msg').style.display = 'block';
   launchImage(rect);
