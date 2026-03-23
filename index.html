@@ -33,7 +33,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 3rem 1.5rem 3rem;
+      padding: 3rem 1.5rem 4rem;
       transition: background-color 0.3s ease;
     }
 
@@ -62,24 +62,25 @@
       animation: flyUp 1.4s ease-in forwards;
       z-index: 999;
     }
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 
-.spin-img {
-  width: auto;
-  height: auto;
-  max-width: 120px;
-  max-height: 120px;
-  object-fit: contain;
-  border-radius: 8px;
-  cursor: pointer;
-  display: block;
-}
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
 
-.spin-img.spinning {
-  animation: spin 0.3s ease-in-out;
-}
+    .spin-img {
+      width: auto;
+      height: auto;
+      max-width: 120px;
+      max-height: 120px;
+      object-fit: contain;
+      cursor: pointer;
+      display: block;
+    }
+
+    .spin-img.spinning {
+      animation: spin 0.3s ease-in-out;
+    }
     
     .image-placeholder {
       width: 100%;
