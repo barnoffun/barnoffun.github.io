@@ -48,6 +48,26 @@
       justify-content: center;
     }
 
+    @keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-img {
+  width: 120px;
+  height: 120px;
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  display: block;
+}
+
+.spin-img.spinning {
+  animation: spin 0.4s ease-in-out;
+}
+    
     .image-placeholder {
       width: 100%;
       max-width: 480px;
@@ -94,7 +114,7 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       background: var(--input-bg);
-      color: var(--fg);
+      color: var(--fg-muted);
       font-family: 'DM Sans', sans-serif;
       font-size: 0.9rem;
       outline: none;
@@ -168,6 +188,7 @@
 <body>
 
   <header>
+   <img src="clown.png" alt="" class="spin-img" id="spin-img" />
    <img src="barn_logo.png" alt="Barn of Fun" style="max-width: 480px; width: 100%; border-radius: 10px;" />
   </header>
 
@@ -181,41 +202,57 @@
       <p class="fine-print">No spam (or manure), ever. Unsubscribe any time.</p>
     </div>
     <button type="button" class="footer-btn" id="submit-btn">
-      <img src="coin_temp.png" alt="Submit" style="width: 80px; height: 120px; object-fit: contain;" />
+      <img src="coin_temp.png" alt="Submit" style="width: 65px; height: 100px; object-fit: contain;" />
     </button>
   </footer>
 
   <script>
-    const colors = [
-      { bg: '#9F8EC7', fg: '#1e1540' },
-      { bg: '#9FD05E', fg: '#1e3a05' },
-      { bg: '#EB94BF', fg: '#3d0e25' },
-      { bg: '#30B7B9', fg: '#022e2f' },
-      { bg: '#B43B91', fg: '#fdf0f8' },
-      { bg: '#A91E3D', fg: '#fdf0f3' },
-      { bg: '#FCD963', fg: '#3a2a00' },
-      { bg: '#AE34B2', fg: '#fdf0fe' },
-    ];
+const colors = [
+  { bg: '#9F8EC7', fg: '#1e1540' },
+  { bg: '#9FD05E', fg: '#1e3a05' },
+  { bg: '#EB94BF', fg: '#3d0e25' },
+  { bg: '#30B7B9', fg: '#022e2f' },
+  { bg: '#B43B91', fg: '#fdf0f8' },
+  { bg: '#A91E3D', fg: '#fdf0f3' },
+  { bg: '#FCD963', fg: '#3a2a00' },
+  { bg: '#AE34B2', fg: '#fdf0fe' },
+];
 
-    const chosen = colors[Math.floor(Math.random() * colors.length)];
-    document.documentElement.style.setProperty('--bg', chosen.bg);
-    document.documentElement.style.setProperty('--fg', chosen.fg);
-    document.documentElement.style.setProperty('--fg-muted', chosen.fg + '73');
-    document.documentElement.style.setProperty('--border', chosen.fg + '26');
-    document.documentElement.style.setProperty('--input-bg', chosen.fg + '0d');
-    document.documentElement.style.setProperty('--btn-bg', chosen.fg);
-    document.documentElement.style.setProperty('--btn-fg', chosen.bg);
+let currentIndex = Math.floor(Math.random() * colors.length);
 
-    document.getElementById('submit-btn').addEventListener('click', function() {
-      const form = document.getElementById('signup-form');
-      const input = form.querySelector('input[type="email"]');
-      if (!input.value || !input.checkValidity()) {
-        input.reportValidity();
-        return;
-      }
-      form.style.display = 'none';
-      document.getElementById('success-msg').style.display = 'block';
-    });
+function applyColor(index) {
+  const chosen = colors[index];
+  document.documentElement.style.setProperty('--bg', chosen.bg);
+  document.documentElement.style.setProperty('--fg', chosen.fg);
+  document.documentElement.style.setProperty('--fg-muted', chosen.fg + '73');
+  document.documentElement.style.setProperty('--border', chosen.fg + '26');
+  document.documentElement.style.setProperty('--input-bg', chosen.fg + '0d');
+  document.documentElement.style.setProperty('--btn-bg', chosen.fg);
+  document.documentElement.style.setProperty('--btn-fg', chosen.bg);
+}
+
+applyColor(currentIndex);
+
+document.getElementById('spin-img').addEventListener('click', function() {
+  const available = colors.map((_, i) => i).filter(i => i !== currentIndex);
+  currentIndex = available[Math.floor(Math.random() * available.length)];
+  applyColor(currentIndex);
+  this.classList.add('spinning');
+  this.addEventListener('animationend', () => {
+    this.classList.remove('spinning');
+  }, { once: true });
+});
+
+document.getElementById('submit-btn').addEventListener('click', function() {
+  const form = document.getElementById('signup-form');
+  const input = form.querySelector('input[type="email"]');
+  if (!input.value || !input.checkValidity()) {
+    input.reportValidity();
+    return;
+  }
+  form.style.display = 'none';
+  document.getElementById('success-msg').style.display = 'block';
+});
   </script>
 </body>
 </html>
