@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Placeholder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0ece3;
+      --fg: #1a1a18;
+      --fg-muted: rgba(26,26,24,0.45);
+      --border: rgba(26,26,24,0.15);
+      --input-bg: rgba(26,26,24,0.05);
+      --btn-bg: #1a1a18;
+      --btn-fg: var(--bg);
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3rem 1.5rem;
+      transition: background-color 0.3s ease;
+    }
+
+    header {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.5rem;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .image-placeholder {
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 16 / 9;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      color: var(--fg-muted);
+      font-size: 0.85rem;
+      font-weight: 300;
+    }
+
+    footer {
+      width: 100%;
+      max-width: 420px;
+      padding-top: 3rem;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+
+    .footer-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .signup-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+    }
+
+    .signup-form {
+      display: flex;
+      width: 100%;
+      align-items: stretch;
+      margin: 0.5rem 0;
+    }
+
+    .signup-form input[type="email"] {
+      flex: 1;
+      padding: 0.4rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--input-bg);
+      color: var(--fg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+      height: 36px;
+      max-height: 36px;
+    }
+
+    .signup-form input[type="email"]::placeholder {
+      color: var(--fg-muted);
+    }
+
+    .signup-form input[type="email"]:focus {
+      border-color: var(--fg);
+    }
+
+    .signup-form button {
+      display: none;
+    }
+
+    .footer-btn {
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+      width: 80px;
+      align-self: stretch;
+      overflow: hidden;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .footer-btn .btn-placeholder {
+      width: 100%;
+      height: 100%;
+      background: var(--btn-bg);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--btn-fg);
+      text-align: center;
+      line-height: 1.3;
+      padding: 4px;
+    }
+
+    .footer-btn:hover { opacity: 0.8; }
+    .footer-btn:active { opacity: 0.6; }
+
+    .success-msg {
+      display: none;
+      font-size: 0.9rem;
+      color: var(--fg-muted);
+      padding-top: 0.5rem;
+    }
+
+    .fine-print {
+      font-size: 0.7rem;
+      color: var(--fg-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="image-placeholder">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="10" width="36" height="28" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <circle cx="16" cy="20" r="3.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <path d="M6 32 L15 22 L22 30 L30 21 L42 33" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <span>Your image here</span>
+    </div>
+  </header>
+
+  <footer>
+    <div class="footer-left">
+      <p class="signup-label">JOIN IN ON THE FUN</p>
+      <form class="signup-form" id="signup-form">
+        <input type="email" placeholder="your@email.com" required autocomplete="email" />
+      </form>
+      <p class="success-msg" id="success-msg">You're on the list. We'll be in touch.</p>
+      <p class="fine-print">No spam (or manure), ever. Unsubscribe any time.</p>
+    </div>
+    <button type="button" class="footer-btn" id="submit-btn">
+      <!-- Replace the div below with: <img src="your-button-image.png" alt="Submit" /> -->
+      <div class="btn-placeholder">Your image</div>
+    </button>
+  </footer>
+
+  <script>
+    const colors = [
+      { bg: '#9F8EC7', fg: '#1e1540' },
+      { bg: '#9FD05E', fg: '#1e3a05' },
+      { bg: '#EB94BF', fg: '#3d0e25' },
+      { bg: '#30B7B9', fg: '#022e2f' },
+      { bg: '#B43B91', fg: '#fdf0f8' },
+      { bg: '#A91E3D', fg: '#fdf0f3' },
+      { bg: '#FCD963', fg: '#3a2a00' },
+      { bg: '#AE34B2', fg: '#fdf0fe' },
+    ];
+
+    const chosen = colors[Math.floor(Math.random() * colors.length)];
+    document.documentElement.style.setProperty('--bg', chosen.bg);
+    document.documentElement.style.setProperty('--fg', chosen.fg);
+    document.documentElement.style.setProperty('--fg-muted', chosen.fg + '73');
+    document.documentElement.style.setProperty('--border', chosen.fg + '26');
+    document.documentElement.style.setProperty('--input-bg', chosen.fg + '0d');
+    document.documentElement.style.setProperty('--btn-bg', chosen.fg);
+    document.documentElement.style.setProperty('--btn-fg', chosen.bg);
+
+    document.getElementById('submit-btn').addEventListener('click', function() {
+      const form = document.getElementById('signup-form');
+      const input = form.querySelector('input[type="email"]');
+      if (!input.value || !input.checkValidity()) {
+        input.reportValidity();
+        return;
+      }
+      form.style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
