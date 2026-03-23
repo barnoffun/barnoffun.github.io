@@ -229,12 +229,11 @@ document.getElementById('spin-img').addEventListener('click', function() {
   }, { once: true });
 });
 
-function launchImage() {
-  const btn = document.getElementById('submit-btn');
-  const rect = btn.getBoundingClientRect();
+function launchImage(rect) {
   const el = document.createElement('img');
   el.src = 'balloon.png';
   el.classList.add('fly-item');
+  el.style.position = 'fixed';
   el.style.left = (rect.left + rect.width / 2 - 32) + 'px';
   el.style.bottom = '0px';
   el.style.top = 'auto';
@@ -248,9 +247,10 @@ document.getElementById('submit-btn').addEventListener('click', function() {
     input.reportValidity();
     return;
   }
+  const rect = this.getBoundingClientRect();
   document.querySelector('.footer-row').style.display = 'none';
   document.getElementById('success-msg').style.display = 'block';
-  launchImage();
+  launchImage(rect);
 });
   </script>
 </body>
