@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>NFL QB Flashcards</title>
+<style>
+  :root {
+    --surface-2: #ffffff;
+    --surface-1: #f5f4f0;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b6b68;
+    --text-muted: #9a9a96;
+    --border: #dddad2;
+    --border-strong: #c4c1b9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-2: #232320;
+      --surface-1: #2b2b28;
+      --text-primary: #f2f2ef;
+      --text-secondary: #b0b0ac;
+      --text-muted: #85857f;
+      --border: #3d3d38;
+      --border-strong: #52524a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--surface-1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-primary);
+    overscroll-behavior: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    padding: 3vmin;
+  }
+  button {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:active { transform: scale(0.98); background: var(--surface-1); }
+</style>
+</head>
+<body>
+
+<div style="display:flex;flex-direction:column;height:94vh;">
+
+<p style="font-size:clamp(12px,3vmin,16px);color:var(--text-secondary);margin:0 0 1.5vh;text-align:center;flex:0 0 auto;" id="progress">Card 1 of 32</p>
+
+<div id="card" onclick="flipCard()" style="cursor:pointer;background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;flex:1 1 auto;display:flex;align-items:center;justify-content:center;text-align:center;padding:3vmin;min-height:0;">
+  <div id="face-inner" style="width:100%;">
+    <p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 2vh;">Team</p>
+    <p style="font-size:clamp(26px,9vmin,46px);font-weight:600;margin:0;line-height:1.2;">Buffalo Bills</p>
+  </div>
+</div>
+
+<div style="flex:0 0 auto;margin-top:1.5vh;">
+  <button onclick="flipCard()" style="width:100%;padding:0;height:9vh;font-size:clamp(18px,5.5vmin,26px);">Flip</button>
+  <div style="display:flex;gap:2vw;margin-top:1.5vh;">
+    <button onclick="prevCard()" style="flex:1;padding:0;height:8vh;font-size:clamp(15px,4.5vmin,20px);">&larr; Prev</button>
+    <button onclick="nextCard()" style="flex:1;padding:0;height:8vh;font-size:clamp(15px,4.5vmin,20px);">Next &rarr;</button>
+  </div>
+  <button onclick="shuffleCards()" style="width:100%;padding:0;height:8vh;margin-top:1.5vh;font-size:clamp(15px,4.5vmin,20px);">&#8635; Shuffle</button>
+</div>
+
+</div>
+
+<script>
+let cards = [
+["Buffalo Bills",[["17","Josh Allen","18/1"],["11","Kyle Allen","U/Det"],["6","Shane Buechele","SF25"]]],
+["Miami Dolphins",[["2","Malik Willis","U/GB"],["14","Quinn Ewers","25/7"],["15","Cam Miller","P/LV"],["16","Mark Gronowski","CF26"]]],
+["New England Patriots",[["10","Drake Maye","24/1"],["16","Tommy DeVito","W/NYG"],["15","Behren Morton","26/7","Texas Tech"]]],
+["New York Jets",[["7","Geno Smith","T/LV"],["10","Cade Klubnik","26/4","Clemson"],["4","Brady Cook","CF25"],["11","Bailey Zappe","SF26"]]],
+["Baltimore Ravens",[["8","Lamar Jackson","18/1"],["5","Tyler Huntley","SF25"],["11","Skylar Thompson","U/Pit"],["12","Joe Fagnano","CF26"]]],
+["Cincinnati Bengals",[["9","Joe Burrow","20/1"],["16","Joe Flacco","T/Cle"],["11","Josh Johnson","U/Was"],["4","Sean Clifford","SF25"]]],
+["Cleveland Browns",[["2","Shedeur Sanders","25/5"],["4","Deshaun Watson","T/Hou"],["6","Dillon Gabriel","25/3"],["15","Taylen Green","26/6","Arkansas"]]],
+["Pittsburgh Steelers",[["8","Aaron Rodgers","CC/NYJ"],["2","Mason Rudolph","U/Ten"],["18","Will Howard","25/6"],["16","Drew Allar","26/3","Penn State"]]],
+["Houston Texans",[["7","C.J. Stroud","23/1"],["10","Davis Mills","21/3"],["18","Graham Mertz","25/6"]]],
+["Indianapolis Colts",[["17","Daniel Jones","U/Min"],["5","Anthony Richardson Sr.","23/1"],["15","Riley Leonard","25/6"],["4","Easton Stick","U/Atl"]]],
+["Jacksonville Jaguars",[["16","Trevor Lawrence","21/1"],["14","Nick Mullens","U/Min"],["10","Carter Bradley","SF25"],["17","Joey Aguilar","CF26"]]],
+["Tennessee Titans",[["1","Cam Ward","25/1"],["10","Mitchell Trubisky","U/Buf"],["8","Will Levis","23/2"],["16","Hendon Hooker","U/NYJ"]]],
+["Denver Broncos",[["10","Bo Nix","24/1"],["8","Jarrett Stidham","U/LV"],["4","Sam Ehlinger","U/Ind"]]],
+["Kansas City Chiefs",[["15","Patrick Mahomes","17/1"],["6","Justin Fields","T/NYJ"],["14","Garrett Nussmeier","26/7","LSU"],["19","Chris Oladokun","SF22"]]],
+["Las Vegas Raiders",[["8","Kirk Cousins","CC/Atl"],["15","Fernando Mendoza","26/1","Indiana"],["12","Aidan O'Connell","23/4"],["16","Jacob Clark","CF26"]]],
+["Los Angeles Chargers",[["10","Justin Herbert","20/1"],["5","Trey Lance","U/Dal"],["7","DJ Uiagalelei","CF25"]]],
+["Dallas Cowboys",[["4","Dak Prescott","16/4"],["10","Joe Milton III","T/NE"],["16","Sam Howell","U/Phi"]]],
+["New York Giants",[["6","Jaxson Dart","25/1"],["19","Jameis Winston","U/Cle"],["12","Brandon Allen","U/Ten"]]],
+["Philadelphia Eagles",[["1","Jalen Hurts","20/2"],["16","Tanner McKee","23/6"],["14","Andy Dalton","T/Car"],["10","Cole Payton","26/5","North Dakota State"]]],
+["Washington Commanders",[["5","Jayden Daniels","24/1"],["8","Marcus Mariota","U/Phi"],["16","Athan Kaliakmanis","26/7","Rutgers"],["15","Sam Hartman","CF24"]]],
+["Chicago Bears",[["18","Caleb Williams","24/1"],["17","Tyson Bagent","CF23"],["11","Case Keenum","U/Hou"],["16","Miller Moss","CF26"]]],
+["Detroit Lions",[["16","Jared Goff","T/LAR"],["5","Teddy Bridgewater","U/TB"],["2","Luke Altmyer","CF26"]]],
+["Green Bay Packers",[["10","Jordan Love","20/1"],["6","Tyrod Taylor","U/NYJ"],["18","Kyle McCord","SF26"],["13","Kyron Drones","CF26"]]],
+["Minnesota Vikings",[["1","Kyler Murray","CC/Arz"],["9","J.J. McCarthy","24/1"],["11","Carson Wentz","U/KC"],["12","Max Brosmer","CF25"]]],
+["Atlanta Falcons",[["9","Michael Penix Jr.","24/1"],["1","Tua Tagovailoa","CC/Mia"],["18","Jack Strand","CF26"],["13","Cooper Rush","CC/Bal"]]],
+["Carolina Panthers",[["9","Bryce Young","23/1"],["12","Kenny Pickett","U/LV"],["16","Haynes King","CF26"]]],
+["New Orleans Saints",[["6","Tyler Shough","25/2"],["2","Spencer Rattler","24/5"],["4","Zach Wilson","U/Mia"],["7","Hunter Dekkers","CF25"]]],
+["Tampa Bay Buccaneers",[["6","Baker Mayfield","U/LAR"],["5","Jake Browning","U/Cin"],["16","Connor Bazelak","CF25"],["10","Jalon Daniels","CF26"]]],
+["Arizona Cardinals",[["7","Jacoby Brissett","U/NE"],["15","Gardner Minshew II","U/KC"],["19","Carson Beck","26/3","Miami"],["12","Kedon Slovis","SF25"]]],
+["Los Angeles Rams",[["9","Matthew Stafford","T/Det"],["15","Ty Simpson","26/1","Alabama"],["13","Stetson Bennett IV","23/4"],["2","Matthew Caldwell","CF26"]]],
+["San Francisco 49ers",[["13","Brock Purdy","22/7"],["10","Mac Jones","U/Jax"],["4","Adrian Martinez","SF25"],["14","Kurtis Rourke","25/7"]]],
+["Seattle Seahawks",[["14","Sam Darnold","U/Min"],["2","Drew Lock","U/NYG"],["6","Jalen Milroe","25/3"]]]
+];
+let idx = 0;
+let flipped = false;
+
+function render() {
+  document.getElementById("progress").textContent = "Card " + (idx+1) + " of " + cards.length;
+  let inner = document.getElementById("face-inner");
+  if (!flipped) {
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 2vh;">Team</p>' +
+      '<p style="font-size:clamp(26px,9vmin,46px);font-weight:600;margin:0;line-height:1.2;">' + cards[idx][0] + '</p>';
+  } else {
+    let rows = cards[idx][1].map(function(qb, i) {
+      let weight = i === 0 ? '600' : '400';
+      let color = i === 0 ? 'var(--text-primary)' : 'var(--text-secondary)';
+      let college = qb[3] ? '<div style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);margin-top:0.3vh;">' + qb[3] + '</div>' : '';
+      return '<div style="padding:1.2vh 0;">' +
+        '<div style="display:flex;gap:2vw;align-items:baseline;justify-content:center;flex-wrap:wrap;">' +
+        '<span style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);">#' + qb[0] + '</span>' +
+        '<span style="font-size:clamp(18px,5vmin,22px);font-weight:' + weight + ';color:' + color + ';">' + qb[1] + '</span>' +
+        '<span style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);">(' + qb[2] + ')</span>' +
+        '</div>' + college +
+        '</div>';
+    }).join('');
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 1.5vh;">' + cards[idx][0] + ' quarterbacks</p>' + rows;
+  }
+}
+function flipCard() {
+  flipped = !flipped;
+  render();
+}
+function nextCard() {
+  idx = (idx+1) % cards.length;
+  flipped = false;
+  render();
+}
+function prevCard() {
+  idx = (idx-1+cards.length) % cards.length;
+  flipped = false;
+  render();
+}
+function shuffleCards() {
+  for (let i = cards.length-1; i>0; i--) {
+    let j = Math.floor(Math.random()*(i+1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  idx = 0;
+  flipped = false;
+  render();
+}
+render();
+</script>
+</body>
+</html>
