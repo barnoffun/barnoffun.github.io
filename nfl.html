@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>NFL Flashcards</title>
+<style>
+  :root {
+    --surface-2: #ffffff;
+    --surface-1: #f5f4f0;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b6b68;
+    --text-muted: #9a9a96;
+    --border: #dddad2;
+    --border-strong: #c4c1b9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-2: #232320;
+      --surface-1: #2b2b28;
+      --text-primary: #f2f2ef;
+      --text-secondary: #b0b0ac;
+      --text-muted: #85857f;
+      --border: #3d3d38;
+      --border-strong: #52524a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--surface-1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-primary);
+    overscroll-behavior: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    padding: 3vmin;
+  }
+  button {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:active { transform: scale(0.98); background: var(--surface-1); }
+</style>
+</head>
+<body>
+
+<div style="display:flex;flex-direction:column;height:94vh;position:relative;">
+
+<p style="font-size:clamp(12px,3vmin,16px);color:var(--text-secondary);margin:0 0 1.5vh;text-align:center;flex:0 0 auto;" id="progress">Card 1 of 32</p>
+
+<div id="card" onclick="flipCard()" style="cursor:pointer;background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;flex:1 1 auto;display:flex;align-items:center;justify-content:center;text-align:center;padding:3vmin;min-height:0;overflow-y:auto;">
+  <div id="face-inner" style="width:100%;">
+    <p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 2vh;">Team</p>
+    <p style="font-size:clamp(26px,9vmin,46px);font-weight:600;margin:0;line-height:1.2;">Buffalo Bills</p>
+  </div>
+</div>
+
+<div style="flex:0 0 auto;margin-top:1.5vh;">
+  <button onclick="flipCard()" style="width:100%;padding:0;height:9vh;font-size:clamp(18px,5.5vmin,26px);">Flip</button>
+  <div style="display:flex;gap:2vw;margin-top:1.5vh;">
+    <button onclick="prevCard()" style="flex:1;padding:0;height:8vh;font-size:clamp(15px,4.5vmin,20px);">&larr; Prev</button>
+    <button onclick="nextCard()" style="flex:1;padding:0;height:8vh;font-size:clamp(15px,4.5vmin,20px);">Next &rarr;</button>
+  </div>
+  <button onclick="shuffleCards()" style="width:100%;padding:0;height:8vh;margin-top:1.5vh;font-size:clamp(15px,4.5vmin,20px);">&#8635; Shuffle</button>
+  <button onclick="toggleSetMenu()" id="setBtn" style="width:100%;padding:0;height:8vh;margin-top:1.5vh;font-size:clamp(15px,4.5vmin,20px);font-weight:600;">QB</button>
+</div>
+
+</div>
+
+<div id="setOverlay" onclick="if(event.target===this){toggleSetMenu();}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);align-items:flex-end;justify-content:center;z-index:50;">
+  <div style="background:var(--surface-2);width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:3vmin 3vmin calc(3vmin + env(safe-area-inset-bottom,0px));">
+    <p style="font-size:clamp(13px,3.2vmin,16px);color:var(--text-secondary);margin:0 0 1.5vh;text-align:center;">Choose a set</p>
+    <div id="setList"></div>
+  </div>
+</div>
+
+<script>
+let sets = {
+  "QB": { type: "roster", data: [
+["Buffalo Bills",[["17","Josh Allen","18/1"],["11","Kyle Allen","U/Det"],["6","Shane Buechele","SF25"]]],
+["Miami Dolphins",[["2","Malik Willis","U/GB"],["14","Quinn Ewers","25/7"],["15","Cam Miller","P/LV"],["16","Mark Gronowski","CF26"]]],
+["New England Patriots",[["10","Drake Maye","24/1"],["16","Tommy DeVito","W/NYG"],["15","Behren Morton","26/7","Texas Tech"]]],
+["New York Jets",[["7","Geno Smith","T/LV"],["10","Cade Klubnik","26/4","Clemson"],["4","Brady Cook","CF25"],["11","Bailey Zappe","SF26"]]],
+["Baltimore Ravens",[["8","Lamar Jackson","18/1"],["5","Tyler Huntley","SF25"],["12","Joe Fagnano","CF26"],["15","Austin Reed","SF26"]]],
+["Cincinnati Bengals",[["9","Joe Burrow","20/1"],["16","Joe Flacco","T/Cle"],["11","Josh Johnson","U/Was"],["4","Sean Clifford","SF25"]]],
+["Cleveland Browns",[["4","Deshaun Watson","T/Hou"],["2","Shedeur Sanders","25/5"],["6","Dillon Gabriel","25/3"],["15","Taylen Green","26/6","Arkansas"]]],
+["Pittsburgh Steelers",[["8","Aaron Rodgers","CC/NYJ"],["2","Mason Rudolph","U/Ten"],["18","Will Howard","25/6"],["16","Drew Allar","26/3","Penn State"]]],
+["Houston Texans",[["7","C.J. Stroud","23/1"],["10","Davis Mills","21/3"],["16","Brett Rypien","U/Min"]]],
+["Indianapolis Colts",[["17","Daniel Jones","U/Min"],["15","Riley Leonard","25/6"],["5","Anthony Richardson Sr.","23/1"],["4","Easton Stick","U/Atl"]]],
+["Jacksonville Jaguars",[["16","Trevor Lawrence","21/1"],["14","Nick Mullens","U/Min"],["10","Carter Bradley","SF25"],["17","Joey Aguilar","CF26"]]],
+["Tennessee Titans",[["1","Cam Ward","25/1"],["10","Mitchell Trubisky","U/Buf"],["8","Will Levis","23/2"],["16","Hendon Hooker","U/NYJ"]]],
+["Denver Broncos",[["10","Bo Nix","24/1"],["8","Jarrett Stidham","U/LV"],["4","Sam Ehlinger","U/Ind"]]],
+["Kansas City Chiefs",[["15","Patrick Mahomes","17/1"],["6","Justin Fields","T/NYJ"],["14","Garrett Nussmeier","26/7","LSU"],["19","Chris Oladokun","SF22"]]],
+["Las Vegas Raiders",[["8","Kirk Cousins","CC/Atl"],["15","Fernando Mendoza","26/1","Indiana"],["12","Aidan O'Connell","23/4"],["16","Jacob Clark","CF26"]]],
+["Los Angeles Chargers",[["10","Justin Herbert","20/1"],["5","Trey Lance","U/Dal"],["7","DJ Uiagalelei","CF25"]]],
+["Dallas Cowboys",[["4","Dak Prescott","16/4"],["10","Joe Milton III","T/NE"],["16","Sam Howell","U/Phi"]]],
+["New York Giants",[["6","Jaxson Dart","25/1"],["19","Jameis Winston","U/Cle"],["12","Brandon Allen","U/Ten"],["2","Jake Haener","SF26"]]],
+["Philadelphia Eagles",[["1","Jalen Hurts","20/2"],["16","Tanner McKee","23/6"],["10","Cole Payton","26/5","North Dakota State"],["14","Andy Dalton","T/Car"]]],
+["Washington Commanders",[["5","Jayden Daniels","24/1"],["8","Marcus Mariota","U/Phi"],["15","Sam Hartman","CF24"],["16","Athan Kaliakmanis","26/7","Rutgers"]]],
+["Chicago Bears",[["18","Caleb Williams","24/1"],["17","Tyson Bagent","CF23"],["11","Case Keenum","U/Hou"],["16","Miller Moss","CF26"]]],
+["Detroit Lions",[["16","Jared Goff","T/LAR"],["6","Joshua Dobbs","CC/NE"],["2","Luke Altmyer","CF26"]]],
+["Green Bay Packers",[["10","Jordan Love","20/1"],["6","Tyrod Taylor","U/NYJ"],["18","Kyle McCord","SF26"]]],
+["Minnesota Vikings",[["1","Kyler Murray","CC/Arz"],["9","J.J. McCarthy","24/1"],["11","Carson Wentz","U/KC"],["12","Max Brosmer","CF25"]]],
+["Atlanta Falcons",[["9","Michael Penix Jr.","24/1"],["1","Tua Tagovailoa","CC/Mia"],["18","Jack Strand","CF26"],["13","Cooper Rush","CC/Bal"]]],
+["Carolina Panthers",[["9","Bryce Young","23/1"],["12","Kenny Pickett","U/LV"],["16","Haynes King","CF26"],["14","Kyle Trask","SF26"]]],
+["New Orleans Saints",[["6","Tyler Shough","25/2"],["2","Spencer Rattler","24/5"],["4","Zach Wilson","U/Mia"],["13","Hunter Dekkers","CF25"]]],
+["Tampa Bay Buccaneers",[["6","Baker Mayfield","U/LAR"],["5","Jake Browning","U/Cin"],["10","Jalon Daniels","CF26"],["16","Connor Bazelak","CF25"]]],
+["Arizona Cardinals",[["7","Jacoby Brissett","U/NE"],["15","Gardner Minshew II","U/KC"],["19","Carson Beck","26/3","Miami"],["12","Kedon Slovis","SF25"]]],
+["Los Angeles Rams",[["9","Matthew Stafford","T/Det"],["13","Stetson Bennett IV","23/4"],["15","Ty Simpson","26/1","Alabama"],["2","Matthew Caldwell","CF26"]]],
+["San Francisco 49ers",[["13","Brock Purdy","22/7"],["10","Mac Jones","U/Jax"],["14","Kurtis Rourke","25/7"],["4","Adrian Martinez","SF25"]]],
+["Seattle Seahawks",[["14","Sam Darnold","U/Min"],["2","Drew Lock","U/NYG"],["6","Jalen Milroe","25/3"]]]
+  ]},
+  "Coaches": { type: "staff", data: [
+["Buffalo Bills",[["HC","Joe Brady","fmr. BUF   OC"],["OC","Pete Carmichael","fmr. DEN   Sr. Off. Asst."],["DC","Jim Leonhard","fmr. DEN   Asst. HC & Def. Pass Co."],["STC","Jeff Rodgers","fmr. ARZ   Asst. HC & STC"]]],
+["Miami Dolphins",[["HC","Jeff Hafley","fmr. GB   DC"],["OC","Bobby Slowik","fmr. MIA   Sr. Passing Co."],["DC","Sean Duggan","fmr. GB   LB Coach"],["STC","Chris Tabor","fmr. BUF   STC"]]],
+["New England Patriots",[["HC","Mike Vrabel","2nd season"],["OC","Josh McDaniels","2nd season"],["DC","Zak Kuhr","fmr. NE   ILB Coach"],["STC","Jeremy Springer","3rd season"]]],
+["New York Jets",[["HC","Aaron Glenn","2nd season"],["OC","Frank Reich","fmr. STAN   Interim HC"],["DC","Brian Duker","fmr. MIA   DB Coach & Pass Co."],["STC","Chris Banjo","2nd season"]]],
+["Baltimore Ravens",[["HC","Jesse Minter","fmr. LAC   DC"],["OC","Declan Doyle","fmr. CHI   OC"],["DC","Anthony Weaver","fmr. MIA   DC"],["STC","Anthony Levine","fmr. BAL   Asst. ST Coach"]]],
+["Cincinnati Bengals",[["HC","Zac Taylor","8th season"],["OC","Dan Pitcher","3rd season"],["DC","Al Golden","2nd season"],["STC","Darrin Simmons","24th season"]]],
+["Cleveland Browns",[["HC","Todd Monken","fmr. BAL   OC"],["OC","Travis Switzer","fmr. BAL   Run Co."],["DC","Mike Rutenberg","fmr. ATL   Def. Pass Co."],["STC","Byron Storer","fmr. GB   Asst. ST Coach"]]],
+["Pittsburgh Steelers",[["HC","Mike McCarthy","fmr. DAL   HC"],["OC","Brian Angelichio","fmr. MIN   TE Coach & Pass Co."],["DC","Patrick Graham","fmr. LV   DC"],["STC","Danny Crossman","fmr. MIA   STC"]]],
+["Houston Texans",[["HC","DeMeco Ryans","4th season"],["OC","Nick Caley","2nd season"],["DC","Matt Burke","4th season"],["STC","Frank Ross","6th season"]]],
+["Indianapolis Colts",[["HC","Shane Steichen","4th season"],["OC","Jim Bob Cooter","4th season"],["DC","Lou Anarumo","2nd season"],["STC","Brian Mason","4th season"]]],
+["Jacksonville Jaguars",[["HC","Liam Coen","2nd season"],["OC","Grant Udinski","2nd season"],["DC","Anthony Campanile","2nd season"],["STC","Heath Farwell","5th season"]]],
+["Tennessee Titans",[["HC","Robert Saleh","fmr. SF   DC"],["OC","Brian Daboll","fmr. NYG   HC"],["DC","Gus Bradley","fmr. SF   Asst. HC"],["STC","John Fassel","2nd season"]]],
+["Denver Broncos",[["HC","Sean Payton","4th season"],["OC","Davis Webb","fmr. DEN   QB Coach & Pass Co."],["DC","Vance Joseph","4th season"],["STC","Darren Rizzi","2nd season"]]],
+["Kansas City Chiefs",[["HC","Andy Reid","14th season"],["OC","Eric Bieniemy","fmr. CHI   RB Coach"],["DC","Steve Spagnuolo","8th season"],["STC","Dave Toub","14th season"]]],
+["Las Vegas Raiders",[["HC","Klint Kubiak","fmr. SEA   OC"],["OC","Andrew Janocko","fmr. SEA   QB Coach"],["DC","Rob Leonard","fmr. LV   DL Coach & Run Co."],["STC","Joe DeCamillis","fmr. SC   Assoc. HC & STC"]]],
+["Los Angeles Chargers",[["HC","Jim Harbaugh","3rd season"],["OC","Mike McDaniel","fmr. MIA   HC"],["DC","Chris O'Leary","fmr. WMU   DC & S Coach"],["STC","Ryan Ficken","5th season"]]],
+["Dallas Cowboys",[["HC","Brian Schottenheimer","2nd season"],["OC","Klayton Adams","2nd season"],["DC","Christian Parker","fmr. PHI   DB Coach & Pass Co."],["STC","Nick Sorensen","2nd season"]]],
+["New York Giants",[["HC","John Harbaugh","fmr. BAL   HC"],["OC","Matt Nagy","fmr. KC   OC"],["DC","Dennard Wilson","fmr. TEN   DC"],["STC","Chris Horton","fmr. BAL   STC"]]],
+["Philadelphia Eagles",[["HC","Nick Sirianni","6th season"],["OC","Sean Mannion","fmr. GB   QB Coach"],["DC","Vic Fangio","3rd season"],["STC","Michael Clay","6th season"]]],
+["Washington Commanders",[["HC","Dan Quinn","3rd season"],["OC","David Blough","fmr. WAS   Asst. QB Coach"],["DC","Daronte Jones","fmr. MIN   DB Coach & Pass Co."],["STC","Larry Izzo","3rd season"]]],
+["Chicago Bears",[["HC","Ben Johnson","2nd season"],["OC","Press Taylor","fmr. CHI   Passing Co."],["DC","Dennis Allen","2nd season"],["STC","Richard Hightower","5th season"]]],
+["Detroit Lions",[["HC","Dan Campbell","6th season"],["OC","Drew Petzing","fmr. ARZ   OC"],["DC","Kelvin Sheppard","2nd season"],["STC","Dave Fipp","6th season"]]],
+["Green Bay Packers",[["HC","Matt LaFleur","8th season"],["OC","Adam Stenavich","5th season"],["DC","Jonathan Gannon","fmr. ARZ   HC"],["STC","Cameron Achord","fmr. NYG   Asst. ST Coach"]]],
+["Minnesota Vikings",[["HC","Kevin O'Connell","5th season"],["OC","Wes Phillips","5th season"],["DC","Brian Flores","4th season"],["STC","Matt Daniels","5th season"]]],
+["Atlanta Falcons",[["HC","Kevin Stefanski","fmr. CLE   HC"],["OC","Tommy Rees","fmr. CLE   OC"],["DC","Jeff Ulbrich","2nd season"],["STC","Craig Aukerman","fmr. MIA   STC"]]],
+["Carolina Panthers",[["HC","Dave Canales","3rd season"],["OC","Brad Idzik","3rd season"],["DC","Ejiro Evero","4th season"],["STC","Tracy Smith","3rd season"]]],
+["New Orleans Saints",[["HC","Kellen Moore","2nd season"],["OC","Doug Nussmeier","2nd season"],["DC","Brandon Staley","2nd season"],["STC","Phil Galiano","2nd season"]]],
+["Tampa Bay Buccaneers",[["HC","Todd Bowles","5th season"],["OC","Zac Robinson","fmr. ATL   OC"],["DC","Todd Bowles","8th season"],["STC","Danny Smith","fmr. PIT   STC"]]],
+["Arizona Cardinals",[["HC","Mike LaFleur","fmr. LAR   OC"],["OC","Nathaniel Hackett","fmr. GB   Def. Analyst"],["DC","Nick Rallis","4th season"],["STC","Michael Ghobrial","fmr. NYG   STC"]]],
+["Los Angeles Rams",[["HC","Sean McVay","10th season"],["OC","Nathan Scheelhaase","fmr. LAR   Passing Co."],["DC","Chris Shula","3rd season"],["STC","Ray Ventrone","fmr. CLE   Asst. HC & STC"]]],
+["San Francisco 49ers",[["HC","Kyle Shanahan","10th season"],["OC","Klay Kubiak","2nd season"],["DC","Raheem Morris","fmr. ATL   HC"],["STC","Brant Boyer","2nd season"]]],
+["Seattle Seahawks",[["HC","Mike Macdonald","3rd season"],["OC","Brian Fleury","fmr. SF   TE Coach & Run Co."],["DC","Aden Durde","3rd season"],["STC","Jay Harbaugh","3rd season"]]]
+  ]}
+};
+
+let currentSet = "QB";
+let cards = sets[currentSet].data;
+let idx = 0;
+let flipped = false;
+
+function render() {
+  document.getElementById("progress").textContent = "Card " + (idx+1) + " of " + cards.length;
+  let inner = document.getElementById("face-inner");
+  let type = sets[currentSet].type;
+  if (!flipped) {
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 2vh;">Team</p>' +
+      '<p style="font-size:clamp(26px,9vmin,46px);font-weight:600;margin:0;line-height:1.2;">' + cards[idx][0] + '</p>';
+  } else if (type === "roster") {
+    let rows = cards[idx][1].map(function(qb, i) {
+      let weight = i === 0 ? '600' : '400';
+      let color = i === 0 ? 'var(--text-primary)' : 'var(--text-secondary)';
+      let college = qb[3] ? '<div style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);margin-top:0.3vh;">' + qb[3] + '</div>' : '';
+      return '<div style="padding:1.2vh 0;">' +
+        '<div style="display:flex;gap:2vw;align-items:baseline;justify-content:center;flex-wrap:wrap;">' +
+        '<span style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);">#' + qb[0] + '</span>' +
+        '<span style="font-size:clamp(18px,5vmin,22px);font-weight:' + weight + ';color:' + color + ';">' + qb[1] + '</span>' +
+        '<span style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);">(' + qb[2] + ')</span>' +
+        '</div>' + college +
+        '</div>';
+    }).join('');
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 1.5vh;">' + cards[idx][0] + ' quarterbacks</p>' + rows;
+  } else {
+    let rows = cards[idx][1].map(function(person) {
+      return '<div style="padding:1.2vh 0;">' +
+        '<span style="font-size:clamp(17px,4.6vmin,21px);font-weight:600;color:var(--text-primary);">' + person[1] + '</span>' +
+        '<div style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);margin-top:0.3vh;">' + person[0] + ' &middot; ' + person[2] + '</div>' +
+        '</div>';
+    }).join('');
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 1.5vh;">' + cards[idx][0] + ' coaching staff</p>' + rows;
+  }
+}
+function flipCard() {
+  flipped = !flipped;
+  render();
+}
+function nextCard() {
+  idx = (idx+1) % cards.length;
+  flipped = false;
+  render();
+}
+function prevCard() {
+  idx = (idx-1+cards.length) % cards.length;
+  flipped = false;
+  render();
+}
+function shuffleCards() {
+  for (let i = cards.length-1; i>0; i--) {
+    let j = Math.floor(Math.random()*(i+1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  idx = 0;
+  flipped = false;
+  render();
+}
+
+function toggleSetMenu() {
+  let overlay = document.getElementById("setOverlay");
+  let isOpen = overlay.style.display === "flex";
+  if (isOpen) {
+    overlay.style.display = "none";
+  } else {
+    renderSetList();
+    overlay.style.display = "flex";
+  }
+}
+function renderSetList() {
+  let list = document.getElementById("setList");
+  let names = Object.keys(sets);
+  list.innerHTML = names.map(function(name) {
+    let active = name === currentSet;
+    let bg = active ? 'var(--surface-1)' : 'transparent';
+    let weight = active ? '600' : '400';
+    return '<button onclick="selectSet(\'' + name + '\')" style="width:100%;text-align:left;padding:2.2vh 3vmin;margin-bottom:1vh;background:' + bg + ';border:0.5px solid var(--border);border-radius:10px;font-size:clamp(15px,4.2vmin,19px);font-weight:' + weight + ';">' + name + '</button>';
+  }).join('');
+}
+function selectSet(name) {
+  currentSet = name;
+  cards = sets[currentSet].data;
+  idx = 0;
+  flipped = false;
+  document.getElementById("setBtn").textContent = name;
+  render();
+  toggleSetMenu();
+}
+
+render();
+</script>
+</body>
+</html>
