@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NFL</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  :root {
+    --surface-2: #ffffff;
+    --surface-1: #f5f4f0;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b6b68;
+    --text-muted: #9a9a96;
+    --border: #dddad2;
+    --border-strong: #c4c1b9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-2: #232320;
+      --surface-1: #2b2b28;
+      --text-primary: #f2f2ef;
+      --text-secondary: #b0b0ac;
+      --text-muted: #85857f;
+      --border: #3d3d38;
+      --border-strong: #52524a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--surface-1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-primary);
+    overscroll-behavior: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    padding: 3vmin;
+  }
+  button {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:active { transform: scale(0.98); background: var(--surface-1); }
+</style>
+</head>
+<body>
+
+<div style="display:flex;flex-direction:column;height:94vh;position:relative;">
+
+<p style="font-size:clamp(12px,3vmin,16px);color:var(--text-secondary);margin:0 0 1.5vh;text-align:center;flex:0 0 auto;" id="progress">Card 1 of 32</p>
+
+<div id="card" onclick="flipCard()" style="cursor:pointer;background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;flex:1 1 auto;display:flex;align-items:center;justify-content:center;text-align:center;padding:3vmin;min-height:0;overflow-y:auto;">
+  <div id="face-inner" style="width:100%;">
+    <p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 2vh;">Team</p>
+    <p style="font-size:clamp(26px,9vmin,46px);font-weight:600;margin:0;line-height:1.2;">Buffalo Bills</p>
+  </div>
+</div>
+
+<div style="flex:0 0 auto;margin-top:1.5vh;">
+  <button onclick="flipCard()" style="width:100%;padding:0;height:9vh;font-size:clamp(18px,5.5vmin,26px);">Flip</button>
+  <div style="display:flex;gap:2vw;margin-top:1.5vh;">
+    <button onclick="prevCard()" style="flex:1;padding:0;height:8vh;font-size:clamp(15px,4.5vmin,20px);">&larr; Prev</button>
+    <button onclick="nextCard()" style="flex:1;padding:0;height:8vh;font-size:clamp(15px,4.5vmin,20px);">Next &rarr;</button>
+  </div>
+  <button onclick="shuffleCards()" style="width:100%;padding:0;height:8vh;margin-top:1.5vh;font-size:clamp(15px,4.5vmin,20px);">&#8635; Shuffle</button>
+  <button onclick="toggleSetMenu()" id="setBtn" style="width:100%;padding:0;height:8vh;margin-top:1.5vh;font-size:clamp(15px,4.5vmin,20px);font-weight:600;">QB</button>
+</div>
+
+</div>
+
+<div id="setOverlay" onclick="if(event.target===this){toggleSetMenu();}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);align-items:flex-end;justify-content:center;z-index:50;">
+  <div style="background:var(--surface-2);width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:3vmin 3vmin calc(3vmin + env(safe-area-inset-bottom,0px));">
+    <p style="font-size:clamp(13px,3.2vmin,16px);color:var(--text-secondary);margin:0 0 1.5vh;text-align:center;">Choose a set</p>
+    <div id="setList"></div>
+  </div>
+</div>
+
+<script>
+let sets = {
+  "QB": { type: "roster", data: [
+["Buffalo Bills",[["17","Josh Allen","18/1"],["11","Kyle Allen","U/Det"]]],
+["Miami Dolphins",[["2","Malik Willis","U/GB"],["14","Kyle McCord","T/GB"],["15","Brady Cook","W/NYJ"]]],
+["New England Patriots",[["10","Drake Maye","24/1"],["16","Tommy DeVito","W/NYG"],["15","Behren Morton","26/7","Texas Tech"]]],
+["New York Jets",[["7","Geno Smith","T/LV"],["10","Cade Klubnik","26/4","Clemson"]]],
+["Baltimore Ravens",[["8","Lamar Jackson","18/1"],["5","Tyler Huntley","SF25"],["12","Joe Fagnano","CF26"]]],
+["Cincinnati Bengals",[["9","Joe Burrow","20/1"],["16","Joe Flacco","T/Cle"]]],
+["Cleveland Browns",[["4","Deshaun Watson","T/Hou"],["2","Shedeur Sanders","25/5"],["15","Taylen Green","26/6","Arkansas"]]],
+["Pittsburgh Steelers",[["8","Aaron Rodgers","CC/NYJ"],["2","Mason Rudolph","U/Ten"],["18","Will Howard","25/6"],["16","Drew Allar","26/3","Penn State"]]],
+["Houston Texans",[["7","C.J. Stroud","23/1"],["10","Davis Mills","21/3"]]],
+["Indianapolis Colts",[["17","Daniel Jones","U/Min"],["5","Anthony Richardson Sr.","23/1"],["15","Riley Leonard","25/6"]]],
+["Jacksonville Jaguars",[["16","Trevor Lawrence","21/1"],["10","Quinn Ewers","T/Mia"]]],
+["Tennessee Titans",[["1","Cam Ward","25/1"],["10","Mitchell Trubisky","U/Buf"]]],
+["Denver Broncos",[["10","Bo Nix","24/1"],["8","Jarrett Stidham","U/LV"],["4","Sam Ehlinger","U/Ind"]]],
+["Kansas City Chiefs",[["15","Patrick Mahomes","17/1"],["6","Justin Fields","T/NYJ"],["19","Garrett Nussmeier","26/7","LSU"]]],
+["Las Vegas Raiders",[["8","Kirk Cousins","CC/Atl"],["15","Fernando Mendoza","26/1","Indiana"],["12","Aidan O'Connell","23/4"]]],
+["Los Angeles Chargers",[["10","Justin Herbert","20/1"],["5","Trey Lance","U/Dal"]]],
+["Dallas Cowboys",[["4","Dak Prescott","16/4"],["16","Sam Howell","U/Phi"]]],
+["New York Giants",[["6","Jaxson Dart","25/1"],["19","Jameis Winston","U/Cle"]]],
+["Philadelphia Eagles",[["1","Jalen Hurts","20/2"],["16","Tanner McKee","23/6"],["14","Andy Dalton","T/Car"],["18","Cole Payton","26/5","North Dakota State"]]],
+["Washington Commanders",[["5","Jayden Daniels","24/1"],["8","Marcus Mariota","U/Phi"],["16","Athan Kaliakmanis","26/7","Rutgers"]]],
+["Chicago Bears",[["18","Caleb Williams","24/1"],["17","Tyson Bagent","CF23"],["11","Case Keenum","U/Hou"]]],
+["Detroit Lions",[["16","Jared Goff","T/LAR"],["6","Joshua Dobbs","CC/NE"]]],
+["Green Bay Packers",[["10","Jordan Love","20/1"],["6","Tyrod Taylor","U/NYJ"]]],
+["Minnesota Vikings",[["1","Kyler Murray","CC/Arz"],["11","Carson Wentz","U/KC"],["9","J.J. McCarthy","24/1"]]],
+["Atlanta Falcons",[["9","Michael Penix Jr.","24/1"],["1","Tua Tagovailoa","CC/Mia"],["13","Cooper Rush","CC/Bal"],["18","Jack Strand","CF26"]]],
+["Carolina Panthers",[["9","Bryce Young","23/1"],["12","Kenny Pickett","U/LV"],["16","Haynes King","CF26"]]],
+["New Orleans Saints",[["6","Tyler Shough","25/2"],["2","Spencer Rattler","24/5"],["11","Zach Wilson","U/Mia"]]],
+["Tampa Bay Buccaneers",[["6","Baker Mayfield","U/LAR"],["10","Jalon Daniels","CF26"]]],
+["Arizona Cardinals",[["7","Jacoby Brissett","U/NE"],["15","Gardner Minshew II","U/KC"],["19","Carson Beck","26/3","Miami"]]],
+["Los Angeles Rams",[["9","Matthew Stafford","T/Det"],["13","Stetson Bennett IV","23/4"],["15","Ty Simpson","26/1","Alabama"]]],
+["San Francisco 49ers",[["13","Brock Purdy","22/7"],["10","Mac Jones","U/Jax"],["14","Kurtis Rourke","25/7"]]],
+["Seattle Seahawks",[["14","Sam Darnold","U/Min"],["2","Drew Lock","U/NYG"],["6","Jalen Milroe","25/3"]]]
+  ]},
+  "RB": { type: "roster", data: [
+["Buffalo Bills",[["4","James Cook III","22/2"],["26","Ty Johnson","SF23"],["7","Ray Davis","24/4"]]],
+["Miami Dolphins",[["28","De'Von Achane","23/3"],["5","Jaylen Wright","24/4"],["0","Ollie Gordon II","25/6"]]],
+["New England Patriots",[["38","Rhamondre Stevenson","21/4"],["32","TreVeyon Henderson","25/2"],["9","Corey Kiner","T/Arz"]]],
+["New York Jets",[["20","Breece Hall","22/2"],["0","Braelon Allen","24/4"],["32","Isaiah Davis","24/5"],["3","Kene Nwangwu","SF24"]]],
+["Baltimore Ravens",[["22","Derrick Henry","U/Ten"],["43","Justice Hill","19/4"],["26","Rasheen Ali","24/5"]]],
+["Cincinnati Bengals",[["30","Chase Brown","23/5"],["34","Samaje Perine","U/KC"],["25","Tahj Brooks","25/6"]]],
+["Cleveland Browns",[["10","Quinshon Judkins","25/2"],["22","Dylan Sampson","25/4"],["23","Raheim Sanders","W/LAC"]]],
+["Pittsburgh Steelers",[["30","Jaylen Warren","CF22"],["13","Rico Dowdle","U/Car"],["29","Eli Heidenreich","26/7","Navy"]]],
+["Houston Texans",[["32","David Montgomery","T/Det"],["4","Woody Marks","25/4"]]],
+["Indianapolis Colts",[["28","Jonathan Taylor","20/2"],["20","Seth McGowan","26/7","Kentucky"],["21","DJ Giddens","25/5"]]],
+["Jacksonville Jaguars",[["33","Bhayshul Tuten","25/4"],["24","Chris Rodriguez Jr.","U/Was"],["5","LeQuint Allen Jr.","25/7"],["20","Ameer Abdullah","U/Ind"]]],
+["Tennessee Titans",[["20","Tony Pollard","U/Dal"],["2","Tyjae Spears","23/3"],["32","Nicholas Singleton","26/5","Penn State"],["36","Julius Chestnut","CF22"]]],
+["Denver Broncos",[["27","J.K. Dobbins","U/LAC"],["12","RJ Harvey","25/2"],["20","Jonah Coleman","26/4","Washington"],["28","Tyler Badie","P/Bal"]]],
+["Kansas City Chiefs",[["9","Kenneth Walker","U/Sea"],["10","Emmett Johnson","26/5","Nebraska"],["24","Brashard Smith","25/7"]]],
+["Las Vegas Raiders",[["2","Ashton Jeanty","25/1"],["4","Mike Washington Jr.","26/4","Arkansas"],["23","Dylan Laube","24/6"]]],
+["Los Angeles Chargers",[["8","Omarion Hampton","25/1"],["34","Keaton Mitchell","U/Bal"],["28","Kimani Vidal","24/6"]]],
+["Dallas Cowboys",[["33","Javonte Williams","U/Den"],["20","Malik Davis","CF22"],["31","Emari Demercado","W/KC"]]],
+["New York Giants",[["44","Cam Skattebo","25/4"],["29","Tyrone Tracy Jr.","24/5"],["26","Devin Singletary","U/Hou"],["23","Najee Harris","U/LAC"]]],
+["Philadelphia Eagles",[["26","Saquon Barkley","U/NYG"],["8","Tank Bigsby","T/Jax"],["28","Will Shipley","24/4"]]],
+["Washington Commanders",[["22","Jacory Croskey-Merritt","25/7"],["1","Rachaad White","U/TB"],["31","Kaytron Allen","26/6","Penn State"]]],
+["Chicago Bears",[["4","D'Andre Swift","U/Phi"],["25","Kyle Monangai","25/7"],["23","Roschon Johnson","23/4"]]],
+["Detroit Lions",[["0","Jahmyr Gibbs","23/1"],["25","Jacob Saylors","SF25"],["33","Sione Vaki","24/4"]]],
+["Green Bay Packers",[["32","MarShawn Lloyd","24/3"],["30","Chris Brooks","SF24"],["26","Kaleb Johnson","T/Pit"]]],
+["Minnesota Vikings",[["33","Aaron Jones Sr.","CC/GB"],["27","Jordan Mason","T/SF"],["21","Demond Claiborne","26/6","Wake Forest"]]],
+["Atlanta Falcons",[["7","Bijan Robinson","23/1"],["15","Brian Robinson","U/SF"]]],
+["Carolina Panthers",[["30","Chuba Hubbard","21/4"],["25","Jonathon Brooks","24/2"],["28","AJ Dillon","U/Phi"]]],
+["New Orleans Saints",[["3","Travis Etienne Jr.","U/Jax"],["41","Alvin Kamara","17/3"],["5","Kendre Miller","23/3"],["30","Audric Estimé","SF25"]]],
+["Tampa Bay Buccaneers",[["7","Bucky Irving","24/4"],["1","Kenny Gainwell","U/Pit"],["44","Sean Tucker","CF23"]]],
+["Arizona Cardinals",[["4","Jeremiyah Love","26/1","Notre Dame"],["22","Tyler Allgeier","U/Atl"],["20","Bam Knight","SF25"]]],
+["Los Angeles Rams",[["9","Matthew Stafford","T/Det"],["13","Stetson Bennett IV","23/4"],["15","Ty Simpson","26/1","Alabama"],["2","Matthew Caldwell","CF26"]]],
+["San Francisco 49ers",[["13","Brock Purdy","22/7"],["10","Mac Jones","U/Jax"],["14","Kurtis Rourke","25/7"],["4","Adrian Martinez","SF25"]]],
+["Seattle Seahawks",[["8","Jadarian Price","26/1","Notre Dame"],["36","George Holani","CF24"],["23","Emanuel Wilson","U/GB"]]]
+  ]},
+  "WR": { type: "wrte", data: [
+["Buffalo Bills",{s:[["0","Keon Coleman","24/2"],["2","DJ Moore","T/Chi"],["10","Khalil Shakir","22/5"]],b:[["5","Joshua Palmer","U/LAC"],["13","Skyler Bell","26/4","UConn"]],te:[["86","Dalton Kincaid","23/1"],["88","Dawson Knox","19/3"]]}],
+["Miami Dolphins",{s:[["1","Jalen Tolbert","U/Dal"],["7","Caleb Douglas","26/3","Texas Tech"],["6","Malik Washington","24/6"]],b:[["18","Chris Bell","26/3","Louisville"],["84","Ryan Miller","W/NYG"],["83","Kevin Coleman Jr.","26/5","Missouri"]],te:[["85","Greg Dulcich","SF25"],["82","Will Kacmarek","26/3","Ohio State"]]}],
+["New England Patriots",{s:[["1","A.J. Brown","T/Phi"],["87","Romeo Doubs","U/GB"],["3","DeMario Douglas","23/6"]],b:[["18","Kyle Williams","25/3"],["13","Mack Hollins","U/Buf"],["86","Efton Chism III","CF25"]],te:[["85","Hunter Henry","U/LAC"],["82","Eli Raridon","26/3","Notre Dame"]]}],
+["New York Jets",{s:[["15","Adonai Mitchell","T/Ind"],["5","Garrett Wilson","22/1"],["18","Isaiah Williams","P/Cin"]],b:[["17","Tim Patrick","U/Jax"],["82","Arian Smith","25/4"],["83","Omar Cooper Jr.","26/1","Indiana"]],te:[["85","Mason Taylor","25/2"],["16","Kenyon Sadiq","26/1","Oregon"]]}],
+["Baltimore Ravens",{s:[["7","Rashod Bateman","21/1"],["81","Devontez Walker","24/4"],["4","Zay Flowers","23/1"]],b:[["13","Elijah Sarratt","26/4","Indiana"],["6","Ja'Kobi Lane","26/3","USC"],["10","LaJohntay Wester","25/6"]],te:[["89","Mark Andrews","18/3"],["80","Durham Smythe","U/Chi"]]}],
+["Cincinnati Bengals",{s:[["1","Ja'Marr Chase","21/1"],["5","Tee Higgins","20/2"],["80","Andrei Iosivas","23/6"]],b:[["81","Dohnte Meyers","SF26"],["86","Colbie Young","26/4","Georgia"],["12","Ke'Shawn Williams","W/Pit"]],te:[["89","Drew Sample","19/2"],["88","Mike Gesicki","U/NE"]]}],
+["Cleveland Browns",{s:[["12","Denzel Boston","26/2","Washington"],["3","Jerry Jeudy","T/Den"],["1","KC Concepcion","26/1","Texas A&M"]],b:[["0","Isaiah Bond","CF25"],["16","Tylan Wallace","U/Bal"],["11","Malachi Corley","SF25"]],te:[["44","Harold Fannin Jr.","25/3"],["86","Blake Whiteheart","SF24"]]}],
+["Pittsburgh Steelers",{s:[["4","DK Metcalf","T/Sea"],["11","Michael Pittman Jr.","T/Ind"],["14","Roman Wilson","24/3"]],b:[["15","Ben Skowronek","SF24"],["17","Germie Bernard","26/2","Alabama"],["10","Kaden Wetjen","26/4","Iowa"]],te:[["88","Pat Freiermuth","21/2"],["80","Darnell Washington","23/3"]]}],
+["Houston Texans",{s:[["12","Nico Collins","21/3"],["14","Kayshon Boutte","T/NE"],["13","Jaylin Noel","25/3"]],b:[["19","Xavier Hutchinson","23/6"],["17","Jared Wayne","CF23"]],te:[["86","Dalton Schultz","U/Dal"],["87","Foster Moreau","U/NO"]]}],
+["Indianapolis Colts",{s:[["14","Alec Pierce","22/2"],["10","Keenan Allen","U/LAC"],["2","Josh Downs","23/3"]],b:[["13","Laquon Treadwell","SF24"],["16","Ashton Dulin","CF19"],["80","Deion Burks","26/7","Oklahoma"]],te:[["84","Tyler Warren","25/1"],["81","Mo Alie-Cox","SF17"]]}],
+["Jacksonville Jaguars",{s:[["7","Brian Thomas Jr.","24/1"],["3","Jakobi Meyers","T/LV"],["11","Parker Washington","23/6"]],b:[["19","Josh Cameron","26/6","Baylor"],["18","CJ Williams","26/6","Stanford"],["12","Travis Hunter","25/1"]],te:[["85","Brenton Strange","23/2"],["87","Nate Boerkircher","26/2","Texas A&M"]]}],
+["Tennessee Titans",{s:[["0","Calvin Ridley","U/Jax"],["14","Carnell Tate","26/1","Ohio State"],["4","Wan'Dale Robinson","U/NYG"]],b:[["5","Elic Ayomanor","25/4"],["17","Chimere Dike","25/4"]],te:[["84","Gunnar Helm","25/4"],["82","Daniel Bellinger","U/NYG"]]}],
+["Denver Broncos",{s:[["14","Courtland Sutton","18/2"],["17","Jaylen Waddle","T/Mia"],["13","Pat Bryant","25/3"]],b:[["5","Lil'Jordan Humphrey","P/NYG"],["19","Marvin Mims Jr.","23/2"],["11","Troy Franklin","24/4"]],te:[["82","Adam Trautman","T/NO"],["1","Evan Engram","CC/Jax"]]}],
+["Kansas City Chiefs",{s:[["2","Tyquan Thornton","SF24"],["1","Xavier Worthy","24/1"],["4","Rashee Rice","23/2"]],b:[["11","Jalen Royals","25/4"],["13","Cyrus Allen","26/5","Cincinnati"],["81","Nikko Remigio","CF23"]],te:[["87","Travis Kelce","13/3"],["83","Noah Gray","21/5"]]}],
+["Las Vegas Raiders",{s:[["1","Tre Tucker","23/3"],["9","Jalen Nailor","U/Min"],["18","Jack Bech","25/2"]],b:[["19","Malik Benson","26/6","Oregon"],["81","Dareke Young","U/Sea"]],te:[["89","Brock Bowers","24/1"],["87","Michael Mayer","23/2"]]}],
+["Los Angeles Chargers",{s:[["1","Quentin Johnston","23/1"],["9","Tre' Harris","25/2"],["15","Ladd McConkey","24/2"]],b:[["84","KeAndre Lambert-Smith","25/5"],["89","Brenen Thompson","26/4","Mississippi State"],["12","Derius Davis","23/4"]],te:[["88","Charlie Kolar","U/Bal"],["86","Oronde Gadsden","25/5"]]}],
+["Dallas Cowboys",{s:[["3","George Pickens","T/Pit"],["88","CeeDee Lamb","20/1"],["19","Ryan Flournoy","24/6"]],b:[["80","Camden Brown","CF26"],["81","Jonathan Mingo","T/Car"],["9","KaVontae Turpin","SF22"]],te:[["87","Jake Ferguson","22/4"],["89","Brevyn Spann-Ford","CF24"]]}],
+["New York Giants",{s:[["1","Malik Nabers","24/1"],["88","Malachi Fields","26/3","Notre Dame"],["17","Darnell Mooney","CC/Atl"]],b:[["13","Odell Beckham Jr.","SF26"],["18","Darius Slayton","19/5"]],te:[["9","Isaiah Likely","U/Bal"],["84","Theo Johnson","24/4"]]}],
+["Philadelphia Eagles",{s:[["13","Dontayvion Wicks","T/GB"],["6","DeVonta Smith","21/1"],["9","Makai Lemon","26/1","USC"]],b:[["80","Darius Cooper","CF25"],["0","Hollywood Brown","U/KC"],["19","Elijah Moore","SF26"]],te:[["88","Dallas Goedert","18/2"],["83","Johnny Mundt","CC/Jax"]]}],
+["Washington Commanders",{s:[["17","Terry McLaurin","19/3"],["3","Stefon Diggs","CC/NE"],["14","Antonio Williams","26/3","Clemson"]],b:[["6","Dyami Brown","U/Jax"],["13","Treylon Burks","SF25"],["11","Luke McCaffrey","24/3"]],te:[["85","Chig Okonkwo","U/Ten"],["87","John Bates","21/4"]]}],
+["Chicago Bears",{s:[["15","Rome Odunze","24/1"],["10","Luther Burden III","25/2"],["14","Kalif Raymond","U/Det"]],b:[["9","Jahdae Walker","CF25"],["81","Zavion Thomas","26/3","LSU"]],te:[["84","Colston Loveland","25/1"],["85","Cole Kmet","20/2"]]}],
+["Detroit Lions",{s:[["18","Isaac TeSlaa","25/3"],["1","Jameson Williams","22/1"],["14","Amon-Ra St. Brown","21/4"]],b:[["17","Tay Martin","SF26"]],te:[["87","Sam LaPorta","23/2"],["89","Brock Wright","CF21"]]}],
+["Green Bay Packers",{s:[["0","Matthew Golden","25/1"],["9","Christian Watson","22/2"],["11","Jayden Reed","23/2"]],b:[["16","Bo Melton","P/Sea"],["87","J. Michael Sturdivant","CF26"],["23","Skyy Moore","U/SF"]],te:[["85","Tucker Kraft","23/3"],["18","Jonnu Smith","CC/Pit"]]}],
+["Minnesota Vikings",{s:[["18","Justin Jefferson","20/1"],["3","Jordan Addison","23/1"],["14","Jauan Jennings","U/SF"]],b:[["13","Tai Felton","25/3"],["4","Myles Price","CF25"]],te:[["87","T.J. Hockenson","T/Det"],["84","Josh Oliver","U/Bal"]]}],
+["Atlanta Falcons",{s:[["5","Drake London","22/1"],["4","Jahan Dotson","U/Phi"],["14","Olamide Zaccheaus","U/Chi"]],b:[["19","Chris Blair","SF23"],["17","Zachariah Branch","26/3","Georgia"]],te:[["8","Kyle Pitts Sr.","21/1"],["89","Charlie Woerner","U/SF"]]}],
+["Carolina Panthers",{s:[["4","Tetairoa McMillan","25/1"],["17","Xavier Legette","24/1"],["18","Jalen Coker","CF24"]],b:[["13","John Metchie III","U/NYJ"],["87","Brycen Tremayne","SF25"],["15","Jimmy Horn Jr.","25/6"]],te:[["82","Tommy Tremble","21/3"],["88","Darren Waller","U/Car"]]}],
+["New Orleans Saints",{s:[["18","Bryce Lance","26/4","North Dakota State"],["12","Chris Olave","22/1"],["14","Devaughn Vele","T/Den"]],b:[["19","Barion Brown","26/6","LSU"]],te:[["83","Juwan Johnson","CF20"],["87","Noah Fant","U/Cin"]]}],
+["Tampa Bay Buccaneers",{s:[["11","Jalen McMillan","24/3"],["2","Emeka Egbuka","25/1"],["14","Chris Godwin Jr.","17/3"]],b:[["17","Ted Hurst III","26/3","Georgia State"],["15","Tez Johnson","25/7"],["19","Kameron Johnson","CF24"]],te:[["88","Cade Otton","22/4"],["87","Payne Durham","23/5"]]}],
+["Arizona Cardinals",{s:[["18","Marvin Harrison Jr.","24/1"],["14","Michael Wilson","23/3"],["17","Kendrick Bourne","U/SF"]],b:[["80","Simi Fehoko","U/LAC"],["82","Reggie Virgil","26/5","Texas Tech"],["81","Devin Duvernay","U/Chi"]],te:[["85","Trey McBride","22/2"],["84","Elijah Higgins","W/Mia"]]}],
+["Los Angeles Rams",{s:[["17","Davante Adams","CC/NYJ"],["12","Puka Nacua","23/5"],["88","Jordan Whittington","24/6"]],b:[["4","Konata Mumpfield","25/7"],["8","Tutu Atwell","T/Mia"],["19","Xavier Smith","CF23"]],te:[["84","Colby Parkinson","U/Sea"],["89","Tyler Higbee","16/4"]]}],
+["San Francisco 49ers",{s:[["5","Mike Evans","U/TB"],["19","Deebo Samuel Sr.","U/Was"],["7","De'Zhaun Stribling","26/2","Mississippi"]],b:[["11","DeMarcus Robinson","U/LAR"],["17","Jordan Watkins","25/4"],["4","Jacob Cowing","24/4"]],te:[["85","George Kittle","17/5"],["88","Jake Tonges","SF23"]]}],
+["Seattle Seahawks",{s:[["11","Jaxon Smith-Njigba","23/1"],["22","Rashid Shaheed","T/NO"],["10","Cooper Kupp","CC/LAR"]],b:[["87","Montorie Foster Jr.","CF25"],["15","Tory Horton","25/5"]],te:[["88","AJ Barner","24/4"],["81","Eric Saubert","U/SF"]]}]
+  ]},
+  "K/P": { type: "kp", data: [
+["Buffalo Bills",[["16","Tyler Bass","20/6"],["39","Tommy Doman Jr.","26/7","Florida"]]],
+["Miami Dolphins",[["47","Riley Patterson","U/Atl"],["48","Bradley Pinion","U/Atl"]]],
+["New England Patriots",[["36","Andy Borregales","25/6"],["17","Bryce Baringer","23/6"]]],
+["New York Jets",[["4","Blake Grupe","W/Ind"],["14","Austin McNamara","SF25"]]],
+["Baltimore Ravens",[["33","Tyler Loop","25/6"],["30","Ryan Eckley","26/6","Michigan State"]]],
+["Cincinnati Bengals",[["2","Evan McPherson","21/5"],["8","Ryan Rehkow","SF24"]]],
+["Cleveland Browns",[["25","Andre Szmyt","SF24"],["13","Corey Bojorquez","U/GB"]]],
+["Pittsburgh Steelers",[["9","Chris Boswell","SF15"],["19","Cameron Johnston","SF26"]]],
+["Houston Texans",[["15","Ka'imi Fairbairn","CF16"],["38","Kai Kroeger","T/NO"]]],
+["Indianapolis Colts",[["3","Spencer Shrader","CF24"],["8","Rigoberto Sanchez","CF17"]]],
+["Jacksonville Jaguars",[["39","Cam Little","24/6"],["9","Logan Cooke","18/7"]]],
+["Tennessee Titans",[["6","Joey Slye","U/NE"],["3","Tommy Townsend","U/Hou"]]],
+["Denver Broncos",[["3","Wil Lutz","T/NO"],["16","Jeremy Crawshaw","25/6"]]],
+["Kansas City Chiefs",[["7","Harrison Butker","P/Car"],["14","Matt Araiza","SF24"]]],
+["Las Vegas Raiders",[["4","Matt Gay","SF26"],["6","AJ Cole","CF19"]]],
+["Los Angeles Chargers",[["11","Cameron Dicker","SF22"],["16","JK Scott","U/Jax"]]],
+["Dallas Cowboys",[["17","Brandon Aubrey","SF23"],["5","Bryan Anger","CC/Hou"]]],
+["New York Giants",[["34","Dominic Zvada","CF26"],["15","Jordan Stout","U/Bal"]]],
+["Philadelphia Eagles",[["4","Jake Elliott","P/Cin"],["10","Braden Mann","SF23"]]],
+["Washington Commanders",[["19","Drew Stevens","CF26"],["10","Tress Way","W/Chi"]]],
+["Chicago Bears",[["8","Cairo Santos","SF20"],["19","Tory Taylor","24/4"]]],
+["Detroit Lions",[["39","Jake Bates","SF24"],["3","Jack Fox","CF19"]]],
+["Green Bay Packers",[["28","Trey Smack","26/6","Florida"],["19","Daniel Whelan","SF23"]]],
+["Minnesota Vikings",[["16","Will Reichard","24/6"],["47","Brett Thorson","CF26"]]],
+["Atlanta Falcons",[["6","Nick Folk","U/NYJ"],["16","Jake Bailey","U/Mia"]]],
+["Carolina Panthers",[["10","Ryan Fitzgerald","CF25"],["6","Sam Martin","CC/Buf"]]],
+["New Orleans Saints",[["10","Daniel Carlson","U/LV"],["17","Ryan Wright","U/Min"]]],
+["Tampa Bay Buccaneers",[["4","Chase McLaughlin","U/Ind"],["9","Riley Dixon","U/Den"]]],
+["Arizona Cardinals",[["38","Chad Ryland","SF24"],["12","Blake Gillikin","SF23"]]],
+["Los Angeles Rams",[["92","Harrison Mevis","SF25"],["42","Ethan Evans","23/7"]]],
+["San Francisco 49ers",[["18","Eddy Pineiro","U/Car"],["15","Corliss Waitman","U/Pit"]]],
+["Seattle Seahawks",[["5","Jason Myers","U/NYJ"],["4","Michael Dickson","18/5"]]]
+  ]},
+["Buffalo Bills",[["HC","Joe Brady","fmr. BUF   OC"],["OC","Pete Carmichael","fmr. DEN   Sr. Off. Asst."],["DC","Jim Leonhard","fmr. DEN   Asst. HC & Def. Pass Co."],["STC","Jeff Rodgers","fmr. ARZ   Asst. HC & STC"]]],
+["Miami Dolphins",[["HC","Jeff Hafley","fmr. GB   DC"],["OC","Bobby Slowik","fmr. MIA   Sr. Passing Co."],["DC","Sean Duggan","fmr. GB   LB Coach"],["STC","Chris Tabor","fmr. BUF   STC"]]],
+["New England Patriots",[["HC","Mike Vrabel","2nd season"],["OC","Josh McDaniels","2nd season"],["DC","Zak Kuhr","fmr. NE   ILB Coach"],["STC","Jeremy Springer","3rd season"]]],
+["New York Jets",[["HC","Aaron Glenn","2nd season"],["OC","Frank Reich","fmr. STAN   Interim HC"],["DC","Brian Duker","fmr. MIA   DB Coach & Pass Co."],["STC","Chris Banjo","2nd season"]]],
+["Baltimore Ravens",[["HC","Jesse Minter","fmr. LAC   DC"],["OC","Declan Doyle","fmr. CHI   OC"],["DC","Anthony Weaver","fmr. MIA   DC"],["STC","Anthony Levine","fmr. BAL   Asst. ST Coach"]]],
+["Cincinnati Bengals",[["HC","Zac Taylor","8th season"],["OC","Dan Pitcher","3rd season"],["DC","Al Golden","2nd season"],["STC","Darrin Simmons","24th season"]]],
+["Cleveland Browns",[["HC","Todd Monken","fmr. BAL   OC"],["OC","Travis Switzer","fmr. BAL   Run Co."],["DC","Mike Rutenberg","fmr. ATL   Def. Pass Co."],["STC","Byron Storer","fmr. GB   Asst. ST Coach"]]],
+["Pittsburgh Steelers",[["HC","Mike McCarthy","fmr. DAL   HC"],["OC","Brian Angelichio","fmr. MIN   TE Coach & Pass Co."],["DC","Patrick Graham","fmr. LV   DC"],["STC","Danny Crossman","fmr. MIA   STC"]]],
+["Houston Texans",[["HC","DeMeco Ryans","4th season"],["OC","Nick Caley","2nd season"],["DC","Matt Burke","4th season"],["STC","Frank Ross","6th season"]]],
+["Indianapolis Colts",[["HC","Shane Steichen","4th season"],["OC","Jim Bob Cooter","4th season"],["DC","Lou Anarumo","2nd season"],["STC","Brian Mason","4th season"]]],
+["Jacksonville Jaguars",[["HC","Liam Coen","2nd season"],["OC","Grant Udinski","2nd season"],["DC","Anthony Campanile","2nd season"],["STC","Heath Farwell","5th season"]]],
+["Tennessee Titans",[["HC","Robert Saleh","fmr. SF   DC"],["OC","Brian Daboll","fmr. NYG   HC"],["DC","Gus Bradley","fmr. SF   Asst. HC"],["STC","John Fassel","2nd season"]]],
+["Denver Broncos",[["HC","Sean Payton","4th season"],["OC","Davis Webb","fmr. DEN   QB Coach & Pass Co."],["DC","Vance Joseph","4th season"],["STC","Darren Rizzi","2nd season"]]],
+["Kansas City Chiefs",[["HC","Andy Reid","14th season"],["OC","Eric Bieniemy","fmr. CHI   RB Coach"],["DC","Steve Spagnuolo","8th season"],["STC","Dave Toub","14th season"]]],
+["Las Vegas Raiders",[["HC","Klint Kubiak","fmr. SEA   OC"],["OC","Andrew Janocko","fmr. SEA   QB Coach"],["DC","Rob Leonard","fmr. LV   DL Coach & Run Co."],["STC","Joe DeCamillis","fmr. SC   Assoc. HC & STC"]]],
+["Los Angeles Chargers",[["HC","Jim Harbaugh","3rd season"],["OC","Mike McDaniel","fmr. MIA   HC"],["DC","Chris O'Leary","fmr. WMU   DC & S Coach"],["STC","Ryan Ficken","5th season"]]],
+["Dallas Cowboys",[["HC","Brian Schottenheimer","2nd season"],["OC","Klayton Adams","2nd season"],["DC","Christian Parker","fmr. PHI   DB Coach & Pass Co."],["STC","Nick Sorensen","2nd season"]]],
+["New York Giants",[["HC","John Harbaugh","fmr. BAL   HC"],["OC","Matt Nagy","fmr. KC   OC"],["DC","Dennard Wilson","fmr. TEN   DC"],["STC","Chris Horton","fmr. BAL   STC"]]],
+["Philadelphia Eagles",[["HC","Nick Sirianni","6th season"],["OC","Sean Mannion","fmr. GB   QB Coach"],["DC","Vic Fangio","3rd season"],["STC","Michael Clay","6th season"]]],
+["Washington Commanders",[["HC","Dan Quinn","3rd season"],["OC","David Blough","fmr. WAS   Asst. QB Coach"],["DC","Daronte Jones","fmr. MIN   DB Coach & Pass Co."],["STC","Larry Izzo","3rd season"]]],
+["Chicago Bears",[["HC","Ben Johnson","2nd season"],["OC","Press Taylor","fmr. CHI   Passing Co."],["DC","Dennis Allen","2nd season"],["STC","Richard Hightower","5th season"]]],
+["Detroit Lions",[["HC","Dan Campbell","6th season"],["OC","Drew Petzing","fmr. ARZ   OC"],["DC","Kelvin Sheppard","2nd season"],["STC","Dave Fipp","6th season"]]],
+["Green Bay Packers",[["HC","Matt LaFleur","8th season"],["OC","Adam Stenavich","5th season"],["DC","Jonathan Gannon","fmr. ARZ   HC"],["STC","Cameron Achord","fmr. NYG   Asst. ST Coach"]]],
+["Minnesota Vikings",[["HC","Kevin O'Connell","5th season"],["OC","Wes Phillips","5th season"],["DC","Brian Flores","4th season"],["STC","Matt Daniels","5th season"]]],
+["Atlanta Falcons",[["HC","Kevin Stefanski","fmr. CLE   HC"],["OC","Tommy Rees","fmr. CLE   OC"],["DC","Jeff Ulbrich","2nd season"],["STC","Craig Aukerman","fmr. MIA   STC"]]],
+["Carolina Panthers",[["HC","Dave Canales","3rd season"],["OC","Brad Idzik","3rd season"],["DC","Ejiro Evero","4th season"],["STC","Tracy Smith","3rd season"]]],
+["New Orleans Saints",[["HC","Kellen Moore","2nd season"],["OC","Doug Nussmeier","2nd season"],["DC","Brandon Staley","2nd season"],["STC","Phil Galiano","2nd season"]]],
+["Tampa Bay Buccaneers",[["HC","Todd Bowles","5th season"],["OC","Zac Robinson","fmr. ATL   OC"],["DC","Todd Bowles","8th season"],["STC","Danny Smith","fmr. PIT   STC"]]],
+["Arizona Cardinals",[["HC","Mike LaFleur","fmr. LAR   OC"],["OC","Nathaniel Hackett","fmr. GB   Def. Analyst"],["DC","Nick Rallis","4th season"],["STC","Michael Ghobrial","fmr. NYG   STC"]]],
+["Los Angeles Rams",[["HC","Sean McVay","10th season"],["OC","Nathan Scheelhaase","fmr. LAR   Passing Co."],["DC","Chris Shula","3rd season"],["STC","Ray Ventrone","fmr. CLE   Asst. HC & STC"]]],
+["San Francisco 49ers",[["HC","Kyle Shanahan","10th season"],["OC","Klay Kubiak","2nd season"],["DC","Raheem Morris","fmr. ATL   HC"],["STC","Brant Boyer","2nd season"]]],
+["Seattle Seahawks",[["HC","Mike Macdonald","3rd season"],["OC","Brian Fleury","fmr. SF   TE Coach & Run Co."],["DC","Aden Durde","3rd season"],["STC","Jay Harbaugh","3rd season"]]]
+  ]}
+};
+
+let currentSet = "QB";
+let cards = sets[currentSet].data;
+let idx = 0;
+let flipped = false;
+
+function personRow(person) {
+  let college = person[3] ? '<div style="font-size:clamp(11px,2.6vmin,13px);color:var(--text-muted);margin-top:0.1vh;">' + person[3] + '</div>' : '';
+  return '<div style="padding:0.8vh 0;">' +
+    '<span style="font-size:clamp(13px,3.4vmin,15px);font-weight:600;color:var(--text-primary);">#' + person[0] + ' ' + person[1] + '</span>' +
+    '<span style="font-size:clamp(11px,2.6vmin,13px);color:var(--text-muted);"> (' + person[2] + ')</span>' +
+    college +
+    '</div>';
+}
+
+function render() {
+  document.getElementById("progress").textContent = "Card " + (idx+1) + " of " + cards.length;
+  let inner = document.getElementById("face-inner");
+  let type = sets[currentSet].type;
+  if (!flipped) {
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 2vh;">Team</p>' +
+      '<p style="font-size:clamp(26px,9vmin,46px);font-weight:600;margin:0;line-height:1.2;">' + cards[idx][0] + '</p>';
+  } else if (type === "roster") {
+    let rows = cards[idx][1].map(function(qb, i) {
+      let weight = i === 0 ? '600' : '400';
+      let color = i === 0 ? 'var(--text-primary)' : 'var(--text-secondary)';
+      let college = qb[3] ? '<div style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);margin-top:0.3vh;">' + qb[3] + '</div>' : '';
+      return '<div style="padding:1.2vh 0;">' +
+        '<div style="display:flex;gap:2vw;align-items:baseline;justify-content:center;flex-wrap:wrap;">' +
+        '<span style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);">#' + qb[0] + '</span>' +
+        '<span style="font-size:clamp(18px,5vmin,22px);font-weight:' + weight + ';color:' + color + ';">' + qb[1] + '</span>' +
+        '<span style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);">(' + qb[2] + ')</span>' +
+        '</div>' + college +
+        '</div>';
+    }).join('');
+    let label = currentSet === "RB" ? "running backs" : "quarterbacks";
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 1.5vh;">' + cards[idx][0] + ' ' + label + '</p>' + rows;
+  } else if (type === "kp") {
+    let rows = cards[idx][1].map(function(p) {
+      let college = p[3] ? '<div style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);margin-top:0.3vh;">' + p[3] + '</div>' : '';
+      return '<div style="padding:1.2vh 0;">' +
+        '<div style="display:flex;gap:2vw;align-items:baseline;justify-content:center;flex-wrap:wrap;">' +
+        '<span style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);">#' + p[0] + '</span>' +
+        '<span style="font-size:clamp(18px,5vmin,22px);font-weight:600;color:var(--text-primary);">' + p[1] + '</span>' +
+        '<span style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);">(' + p[2] + ')</span>' +
+        '</div>' + college +
+        '</div>';
+    }).join('');
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 1.5vh;">' + cards[idx][0] + ' specialists</p>' + rows;
+  } else if (type === "wrte") {
+    let team = cards[idx][1];
+    let maxRows = Math.max(team.s.length, team.b.length);
+    let wrRows = '';
+    for (let i = 0; i < maxRows; i++) {
+      wrRows += '<div style="display:flex;gap:3vw;">' +
+        '<div style="flex:1;text-align:left;">' + (team.s[i] ? personRow(team.s[i]) : '') + '</div>' +
+        '<div style="flex:1;text-align:left;">' + (team.b[i] ? personRow(team.b[i]) : '') + '</div>' +
+        '</div>';
+    }
+    let teRows = '<div style="display:flex;gap:3vw;">' +
+      '<div style="flex:1;text-align:left;">' + (team.te[0] ? personRow(team.te[0]) : '') + '</div>' +
+      '<div style="flex:1;text-align:left;">' + (team.te[1] ? personRow(team.te[1]) : '') + '</div>' +
+      '</div>';
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 1.5vh;">' + cards[idx][0] + ' receivers</p>' +
+      wrRows +
+      '<div style="border-top:0.5px solid var(--border);margin:1.5vh 0;"></div>' +
+      teRows;
+  } else {
+    let rows = cards[idx][1].map(function(person) {
+      let detail;
+      if (person[2].indexOf('fmr. ') === 0) {
+        let rest = person[2].slice(5).replace(/\s{2,}/g, ' ');
+        detail = person[0] + ' (' + rest + ')';
+      } else {
+        detail = person[0] + ' &middot; ' + person[2];
+      }
+      return '<div style="padding:1.2vh 0;">' +
+        '<span style="font-size:clamp(17px,4.6vmin,21px);font-weight:600;color:var(--text-primary);">' + person[1] + '</span>' +
+        '<div style="font-size:clamp(13px,3.4vmin,16px);color:var(--text-muted);margin-top:0.3vh;">' + detail + '</div>' +
+        '</div>';
+    }).join('');
+    inner.innerHTML = '<p style="font-size:clamp(13px,3.2vmin,17px);color:var(--text-secondary);margin:0 0 1.5vh;">' + cards[idx][0] + ' coaching staff</p>' + rows;
+  }
+}
+function flipCard() {
+  flipped = !flipped;
+  render();
+}
+function nextCard() {
+  idx = (idx+1) % cards.length;
+  flipped = false;
+  render();
+}
+function prevCard() {
+  idx = (idx-1+cards.length) % cards.length;
+  flipped = false;
+  render();
+}
+function shuffleCards() {
+  for (let i = cards.length-1; i>0; i--) {
+    let j = Math.floor(Math.random()*(i+1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  idx = 0;
+  flipped = false;
+  render();
+}
+
+function toggleSetMenu() {
+  let overlay = document.getElementById("setOverlay");
+  let isOpen = overlay.style.display === "flex";
+  if (isOpen) {
+    overlay.style.display = "none";
+  } else {
+    renderSetList();
+    overlay.style.display = "flex";
+  }
+}
+function renderSetList() {
+  let list = document.getElementById("setList");
+  let names = Object.keys(sets);
+  list.innerHTML = names.map(function(name) {
+    let active = name === currentSet;
+    let bg = active ? 'var(--surface-1)' : 'transparent';
+    let weight = active ? '600' : '400';
+    return '<button onclick="selectSet(\'' + name + '\')" style="width:100%;text-align:left;padding:2.2vh 3vmin;margin-bottom:1vh;background:' + bg + ';border:0.5px solid var(--border);border-radius:10px;font-size:clamp(15px,4.2vmin,19px);font-weight:' + weight + ';">' + name + '</button>';
+  }).join('');
+}
+function selectSet(name) {
+  currentSet = name;
+  cards = sets[currentSet].data;
+  idx = 0;
+  flipped = false;
+  document.getElementById("setBtn").textContent = name;
+  render();
+  toggleSetMenu();
+}
+
+render();
+</script>
+</body>
+</html>
